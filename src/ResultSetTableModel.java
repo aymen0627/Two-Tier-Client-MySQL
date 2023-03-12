@@ -9,14 +9,14 @@ Class: Enterprise Computing
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.sql.Connection;
-import java.sql.Statement;
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
-import java.sql.SQLException;
-import java.util.Properties;
-import javax.swing.table.AbstractTableModel;
 import com.mysql.cj.jdbc.MysqlDataSource;
+import java.sql.Statement;
+import java.sql.SQLException;
+import java.sql.ResultSetMetaData;
+import java.util.Properties;
+import java.sql.ResultSet;
+import javax.swing.table.AbstractTableModel;
+import java.sql.Connection;
 import java.util.Properties;
 
 //Professor's code to connect to database
@@ -25,50 +25,53 @@ public class ResultSetTableModel extends AbstractTableModel {
 
    private Connection connection;
    private Statement statement;
+   private Statement statement1;
    private ResultSet resultSet;
    private ResultSetMetaData metaData;
    private int numberOfRows;
+   private Properties operationProp = new Properties();
+   private FileInputStream filein = null;
 
-   //connect to main project3 database
-   //use properties file instead of hard coding
-   private final String DATABASE_URL = "jdbc:mysql://localhost:3306/project3?useTimezone=true&serverTimezone=UTC";
-
-   //connect to operationslog data base for testing, should try to do it through properties file
-   private final String DATABASE_URL_2 = "jdbc:mysql://localhost:3306/operationslog?useTimezone=true&serverTimezone=UTC";
-   private final String USERNAME = "root";
-   private final String PASSWORD = "ucf0627";
    private Statement logIt;
 
+   public boolean connectedToDatabase = false;
+   public boolean connectedToDataBase2 = false;
 
-   public boolean connectedToDataBase = false;
-
-   //make cleaner
-   public ResultSetTableModel(Connection incomingConnection) throws SQLException, ClassNotFoundException {
+   public ResultSetTableModel(Connection project3Connection) throws SQLException, ClassNotFoundException, IOException {
       // constructor initializes resultSet and obtains its meta data object;
       // determines number of row
-      connection = incomingConnection;
+      connection = project3Connection;
+
       statement = connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-      connectedToDataBase = true;
-      Properties testProp = new Properties();
-      FileInputStream fileTest = null;
-      MysqlDataSource testSource = null;
 
-      try{
-         fileTest = new FileInputStream("root.properties");
-         testProp.load(fileTest);
-         testSource = new MysqlDataSource();
-         //connect to operationslog db
-         testSource.setURL(testProp.getProperty("MYSQL_DB_URL2"));
-         testSource.setURL(testProp.getProperty("MYSQL_DB_USERNAME"));
-         testSource.setPassword(testProp.getProperty("MYSQL_DB_PASSWORD"));
+      connectedToDatabase = true;
 
-      } catch (IOException e) {
-         throw new RuntimeException(e);
-      }
+      ///////////////////////////
+      //load and connect to operations db
+
+//      MysqlDataSource operationsSource = new MysqlDataSource();
+//
+//      filein = new FileInputStream("operations.properties");
+//
+//
+//      operationProp.load(filein);
+//      operationsSource.setURL(operationProp.getProperty("MYSQL_DB_URL"));
+//      operationsSource.setUser(operationProp.getProperty("MYSQL_DB_USERNAME"));
+//      operationsSource.setPassword(operationProp.getProperty("MYSQL_DB_PASSWORD"));
+//
+//      Connection operationConnection = operationsSource.getConnection();
+//
+//      statement1 =
+//              operationConnection.createStatement( ResultSet.TYPE_SCROLL_INSENSITIVE,
+//                      ResultSet.CONCUR_READ_ONLY );
+
+      //connectedToDataBase2 = true;
+
+
    }
 
    public Class getColumnClass(int column) throws IllegalStateException {
-      if (!connectedToDataBase) {
+      if (!connectedToDatabase) {
          throw new IllegalStateException("Not Connected To Database");
       }
       try {
@@ -81,7 +84,7 @@ public class ResultSetTableModel extends AbstractTableModel {
    }
 
    public int getColumnCount() throws IllegalStateException {
-      if (!connectedToDataBase) {
+      if (!connectedToDatabase) {
          throw new IllegalStateException("Not Connected To Database");
       }
       try {
@@ -93,7 +96,7 @@ public class ResultSetTableModel extends AbstractTableModel {
    }
 
    public String getColumnName(int column) throws IllegalStateException {
-      if (!connectedToDataBase) {
+      if (!connectedToDatabase) {
          throw new IllegalStateException("Not Connected To Database");
       }
       try {
@@ -105,7 +108,7 @@ public class ResultSetTableModel extends AbstractTableModel {
    }
 
    public int getRowCount() throws IllegalStateException {
-      if (!connectedToDataBase) {
+      if (!connectedToDatabase) {
          throw new IllegalStateException("Not Connected To Database");
       }
 
@@ -113,10 +116,10 @@ public class ResultSetTableModel extends AbstractTableModel {
    }
 
    public Object getValueAt(int row, int column) throws IllegalStateException {
-      if (!connectedToDataBase) {
+      if (!connectedToDatabase) {
          throw new IllegalStateException("Not Connected To Database");
       }
-
+      // obtain a value at specified ResultSet row and column
       try {
          resultSet.next();
          resultSet.absolute(row + 1);
@@ -127,11 +130,13 @@ public class ResultSetTableModel extends AbstractTableModel {
       return "";
    }
 
-   public void setQuery(String query) throws SQLException, IllegalStateException, ClassNotFoundException {
+   public void setQuery(String query) throws SQLException, IllegalStateException, ClassNotFoundException, IOException {
       // ensure database connection is available
-      if (!connectedToDataBase) {
+      if (!connectedToDatabase) {
          throw new IllegalStateException("Not Connected To Database");
       }
+
+
 
       resultSet = statement.executeQuery(query);
 
@@ -140,73 +145,69 @@ public class ResultSetTableModel extends AbstractTableModel {
       resultSet.last();
       numberOfRows = resultSet.getRow();
 
+      //connect to operations DB
+      MysqlDataSource operationsSource = new MysqlDataSource();
+
+      //load and connect to operations Db for logging
+      filein = new FileInputStream("operations.properties");
+
+      operationProp.load(filein);
+      operationsSource.setURL(operationProp.getProperty("MYSQL_DB_URL"));
+      operationsSource.setUser(operationProp.getProperty("MYSQL_DB_USERNAME"));
+      operationsSource.setPassword(operationProp.getProperty("MYSQL_DB_PASSWORD"));
 
 
-      MysqlDataSource dataSource = null;
+      Connection operationConnection = operationsSource.getConnection();
 
-      MysqlDataSource dataSource2 = null;
-
-      dataSource = new MysqlDataSource();
-      dataSource.setURL(DATABASE_URL);
-      dataSource.setUser(USERNAME);
-      dataSource.setPassword(PASSWORD);
-
-      dataSource2 = new MysqlDataSource();
-      dataSource2.setURL(DATABASE_URL_2);
-      dataSource2.setUser(USERNAME);
-      dataSource2.setPassword(PASSWORD);
-
-
-      Connection logConnection = dataSource2.getConnection();
-
+      //command to update operations counter
       String counterLog = "update operationscount set num_queries = num_queries + 1";
 
-      logIt = logConnection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-
+      logIt = operationConnection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
       logIt.executeUpdate(counterLog);
 
       // notify JTable that model has changed
       fireTableStructureChanged();
+
+      //disconnect safely
+      //disconnectFromDataBase();
    }
 
-   public int setUpdate(String query) throws SQLException, IllegalStateException {
-      if (!connectedToDataBase) {
+   public int setUpdate(String query) throws SQLException, IllegalStateException, IOException {
+      if (!connectedToDatabase) {
          throw new IllegalStateException("Not Connected To Database");
       }
 
       int res = statement.executeUpdate(query);
 
-      MysqlDataSource dataSource = null;
-      MysqlDataSource dataSource2 = null;
+      MysqlDataSource operationsSource = new MysqlDataSource();
+      //load and connect to operations Db for logging
+      filein = new FileInputStream("operations.properties");
 
-      dataSource = new MysqlDataSource();
-      dataSource.setURL(DATABASE_URL);
-      dataSource.setUser(USERNAME);
-      dataSource.setPassword(PASSWORD);
-      //Connection logConnection1 = dataSource.getConnection();
+      operationProp.load(filein);
+      operationsSource.setURL(operationProp.getProperty("MYSQL_DB_URL"));
+      operationsSource.setUser(operationProp.getProperty("MYSQL_DB_USERNAME"));
+      operationsSource.setPassword(operationProp.getProperty("MYSQL_DB_PASSWORD"));
+
+      Connection operationConnection = operationsSource.getConnection();
 
 
-      dataSource2 = new MysqlDataSource();
-      dataSource2.setURL(DATABASE_URL_2);
-      dataSource2.setUser(USERNAME);
-      dataSource2.setPassword(PASSWORD);
-      Connection logConnection = dataSource2.getConnection();
-
+      //command to update operations counter
       String counterLog = "update operationscount set num_updates = num_updates + 1";
 
-      logIt = logConnection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-
+      logIt = operationConnection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
       logIt.executeUpdate(counterLog);
 
       // notify JTable that model has changed
       fireTableStructureChanged();
+
+      //disconnectFromDataBase();
 
       return res;
    }
 
    //not sure if needed for setup
    public void disconnectFromDataBase() {
-      if (!connectedToDataBase)
+      if (!connectedToDatabase)
          return;
       else try {
          statement.close();
@@ -215,7 +216,7 @@ public class ResultSetTableModel extends AbstractTableModel {
       catch (SQLException sqlException) {
          sqlException.printStackTrace();
       } finally {
-         connectedToDataBase = false;
+         connectedToDatabase = false;
       }
    }
 }

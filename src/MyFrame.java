@@ -30,8 +30,10 @@ public class MyFrame extends JFrame{
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); //closes the frame instead of hiding it
         //resizeable not working consistently
         //this.setResizable(false); //makes the frame not resizable
+        setPreferredSize(new Dimension(910, 700));
 
-        this.setSize(1050, 550); //size of the frame
+
+        //this.setSize(1050, 550); //size of the frame
 
         //this.setLayout(new FlowLayout(FlowLayout.LEADING));
         this.getContentPane().setBackground(Color.white);

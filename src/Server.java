@@ -6,21 +6,20 @@ Date: March 9, 2023
 Class: Enterprise Computing
 */
 import java.awt.*;
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
-import java.io.FileInputStream;
+import com.mysql.cj.jdbc.MysqlDataSource;
 import java.io.IOException;
+import javax.swing.table.TableModel;
 import java.sql.Connection;
-import java.sql.SQLException;
-import java.util.Arrays;
 import java.util.Objects;
 import java.util.Properties;
+import java.sql.SQLException;
 import javax.swing.*;
 import javax.swing.border.Border;
+import java.io.FileInputStream;
+import java.util.Arrays;
 import javax.swing.border.TitledBorder;
 import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableModel;
-import com.mysql.cj.jdbc.MysqlDataSource;
+
 
 
 public class Server extends JPanel {
@@ -31,8 +30,6 @@ public class Server extends JPanel {
     private ResultSetTableModel resultSetModel;
 
     public Server() {
-
-
 
         //border layout titles
         TitledBorder title;
@@ -54,7 +51,7 @@ public class Server extends JPanel {
 
         JTextField input = new JTextField(10);
         input.setCaretColor(Color.green);
-        input.setBounds(185, 85, 165, 25);
+        input.setBounds(180, 85, 170, 30);
         Border borderInput = BorderFactory.createLineBorder(Color.blue,1);
         input.setBorder(borderInput);
         add(input);
@@ -75,6 +72,8 @@ public class Server extends JPanel {
         redPanel.setBackground(Color.white);
         redPanel.setBounds(15,10,400,200);
 
+        setLayout(null);
+
 //        redPanel.setLayout(new GridLayout(4,2, 3,50));
 //
 //        TitledBorder title;
@@ -82,8 +81,8 @@ public class Server extends JPanel {
 //        redPanel.setBorder(title);
 
 
-        setPreferredSize(new Dimension(900, 600));
-        setLayout(null);
+
+
 
         JTextArea querySQL = new JTextArea(5, 5);
         querySQL.setCaretColor(Color.blue);
@@ -91,8 +90,8 @@ public class Server extends JPanel {
         querySQL.setWrapStyleWord(true);
         querySQL.setLineWrap(true);
         JScrollPane scroll = new JScrollPane(querySQL, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-        Box sqlSquare = Box.createHorizontalBox();
-        sqlSquare.add(scroll);
+        Box sqlContainer = Box.createHorizontalBox();
+        sqlContainer.add(scroll);
 
         //bottom table for display result
         TableModel table = new DefaultTableModel();
@@ -100,9 +99,9 @@ public class Server extends JPanel {
         showTable.setModel(table);
         showTable.setGridColor(Color.blue);
 
-        final Box square = Box.createHorizontalBox();
-        square.add(showTable);
-        square.add(new JScrollPane(showTable));
+        final Box container = Box.createHorizontalBox();
+        container.add(showTable);
+        container.add(new JScrollPane(showTable));
 
 
 
@@ -112,7 +111,7 @@ public class Server extends JPanel {
         JComboBox dropDown = new JComboBox(s1);
         Border borderDropdown = BorderFactory.createLineBorder(Color.blue,1);
         dropDown.setBorder(borderDropdown);
-        dropDown.setBounds(185, 45, 165, 25);
+        dropDown.setBounds(180, 48, 170, 30);
         add(dropDown);
 
 
@@ -134,7 +133,7 @@ public class Server extends JPanel {
         JButton windowClear = new JButton("Clear Result Window");
         windowClear.setBackground(Color.yellow);
         windowClear.setForeground(Color.black);
-        windowClear.setBounds(300, 530, 300, 40);
+        windowClear.setBounds(300, 600, 300, 40);
         add(windowClear);
 
         JButton ClearSQL = new JButton("Clear SQL");
@@ -145,11 +144,11 @@ public class Server extends JPanel {
 
 
         JLabel username = new JLabel("USERNAME");
-        username.setBounds(60, 80, 165, 25);
+        username.setBounds(60, 80, 190, 30);
         add(username);
 
         JLabel password = new JLabel("PASSWORD");
-        password.setBounds(60, 115, 165, 25);
+        password.setBounds(60, 120, 190, 30);
         add(password);
 
 
@@ -160,15 +159,15 @@ public class Server extends JPanel {
 
 
         JPasswordField PasswordText = new JPasswordField(10);
-        PasswordText.setBounds(185, 115, 165, 25);
+        PasswordText.setBounds(180, 120, 170, 30);
         Border borderPassword = BorderFactory.createLineBorder(Color.blue,1);
         PasswordText.setBorder(borderPassword);
         add(PasswordText);
 
-        square.setBounds(20, 300, 850, 220);
-        sqlSquare.setBounds(450, 42, 420, 125);
-        add(sqlSquare, BorderLayout.SOUTH);
-        add(square, BorderLayout.NORTH);
+        container.setBounds(30, 310, 860, 230);
+        sqlContainer.setBounds(437, 30, 430, 130);
+        add(sqlContainer, BorderLayout.SOUTH);
+        add(container, BorderLayout.NORTH);
 
         JPanel bluePanel = new JPanel();
         bluePanel.setBounds(15,260,880,330);
@@ -184,8 +183,8 @@ public class Server extends JPanel {
 
 //        //button panel
         JPanel greenPanel = new JPanel();
-       greenPanel.setBorder(title2);
-       greenPanel.setBounds(430,10,445,210);
+        greenPanel.setBorder(title2);
+        greenPanel.setBounds(430,10,445,210);
         greenPanel.setBackground(Color.white);
 //        greenPanel.setPreferredSize(new Dimension(600,250));
 //        //greenPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
@@ -200,9 +199,11 @@ public class Server extends JPanel {
         add(greenPanel);
         add(bluePanel);
 
+        ClearSQL.addActionListener(event -> querySQL.setText(""));
+
         windowClear.addActionListener(event -> showTable.setModel(table));
 
-        ClearSQL.addActionListener(event -> querySQL.setText(""));
+
 
 
         //FOLLOW RESULTSETTABLEMODEL.JAVA CODE FROM WEBCOURSES
@@ -212,9 +213,9 @@ public class Server extends JPanel {
             boolean userCredentialsOK = false;
             try {
 
-                 MysqlDataSource dataSource;
-                 FileInputStream file = null;
-                 Properties properties = new Properties();
+                MysqlDataSource dataSource;
+                FileInputStream file = null;
+                Properties properties = new Properties();
                 try {
 
                     file = new FileInputStream(dropDown.getSelectedItem().toString());
@@ -250,11 +251,11 @@ public class Server extends JPanel {
                     }
 
                 } catch (SQLException e) {
-                    JOptionPane.showMessageDialog(null, e.getMessage(), "ERROR IN DB", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(null, e.getMessage(), "ERROR IN DB (1)", JOptionPane.ERROR_MESSAGE);
                 }
 
             } catch (IOException e) {
-                JOptionPane.showMessageDialog(null, e.getMessage(), "ERROR IN DB", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(null, e.getMessage(), "ERROR IN DB (2)", JOptionPane.ERROR_MESSAGE);
 
             }
         });
@@ -262,28 +263,46 @@ public class Server extends JPanel {
 
 
         //Make this cleaner
+        //Execute button only updates from certain commands
+        //should be able to switch db's?
         ExecuteSQL.addActionListener(event -> {
+            //only updates certain commands
             try {
+
+                //scan in sql command entered
                 String executeQuery = querySQL.getText();
 
-                //if the query is to select, then set query, else set update
+
                 resultSetModel = new ResultSetTableModel(connection);
+
+
+                //use query box has select then updates logs and table
                 if (executeQuery.contains("select")) {
 
                     resultSetModel.setQuery(executeQuery);
                     showTable.setModel(resultSetModel);
 
-                } else
+                }
+                //message for database change - Do not log these
+                else if(executeQuery.contains("use"))
+                {
+                    JOptionPane.showMessageDialog(null,"Database changed!","Change of Database", JOptionPane.PLAIN_MESSAGE);
+                }
+                //else if()
+                //update models for any other commands not 'select'
+                else
                     JOptionPane.showMessageDialog(null, "Successful Update...." + resultSetModel.setUpdate(executeQuery) + " rows updated", "Successful Update", JOptionPane.PLAIN_MESSAGE);
 
-            } catch (ClassNotFoundException | SQLException e) {
-                JOptionPane.showMessageDialog(null, e.getMessage(), "ERROR IN DB", JOptionPane.ERROR_MESSAGE);
+            } catch (ClassNotFoundException | SQLException | IOException e) {
+                JOptionPane.showMessageDialog(null, e.getMessage(), "ERROR IN DB (3)", JOptionPane.ERROR_MESSAGE);
             }
         });
 
-   }
+    }
 
     public static void main(String[] args) {
+
+        //cleanup from first project GUI
         MyFrame frame = new MyFrame();
 
 
